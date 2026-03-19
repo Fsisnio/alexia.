@@ -2,10 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } }); // 25 MB
 const SECRET = process.env.JWT_SECRET || 'votre_secret_temporaire';
 const PORT = process.env.PORT || 4000;
 
@@ -85,6 +87,42 @@ function requireAuth(req, res, next) {
 // Route protégée exemple
 app.get('/api/profile', requireAuth, (req, res) => {
   res.json({ email: req.user.email });
+});
+
+// Transcription audio (fallback pour mobile quand Web Speech API échoue)
+app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ error: 'Fichier audio requis' });
+    }
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({
+        error: 'Transcription non configurée. Définissez OPENAI_API_KEY sur le serveur pour activer la transcription différée.'
+      });
+    }
+    const OpenAI = require('openai').default;
+    const openai = new OpenAI({ apiKey });
+    const lang = (req.body.language || 'fr').substring(0, 2);
+    const tmpPath = path.join(require('os').tmpdir(), `alexia-${Date.now()}.webm`);
+    fs.writeFileSync(tmpPath, req.file.buffer);
+    try {
+      const transcription = await openai.audio.transcriptions.create({
+        file: fs.createReadStream(tmpPath),
+        model: 'whisper-1',
+        language: lang,
+        response_format: 'text'
+      });
+      const text = typeof transcription === 'string' ? transcription : (transcription?.text || '');
+      res.json({ text: text.trim() });
+    } finally {
+      try { fs.unlinkSync(tmpPath); } catch (_) {}
+    }
+  } catch (err) {
+    console.error('Erreur transcription:', err);
+    const msg = err.message || 'Erreur lors de la transcription';
+    res.status(500).json({ error: msg });
+  }
 });
 
 // Catch all route for SPA (local only - Vercel sert les statiques depuis public/)

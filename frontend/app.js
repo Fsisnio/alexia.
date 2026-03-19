@@ -251,6 +251,7 @@ class ALEXIA {
         this.engagementDisplay = document.getElementById('engagement');
         this.languageSelect = document.getElementById('languageSelect');
         this.autoStopCheckbox = document.getElementById('autoStopCheckbox');
+        this.transcribeAudioBtn = document.getElementById('transcribeAudio');
         this.downloadAudioBtn = document.getElementById('downloadAudio');
         this.downloadReportBtn = document.getElementById('downloadReport');
         this.downloadReportPdfBtn = document.getElementById('downloadReportPdf');
@@ -260,9 +261,12 @@ class ALEXIA {
         this.suggestionsList = document.getElementById('suggestions');
         this.translationTargetLanguage = document.getElementById('translationTargetLanguage');
 
+        // Détection mobile pour adaptations (Web Speech API limité sur mobile)
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         this.recognition = (window.SpeechRecognition || window.webkitSpeechRecognition)
             ? new (window.SpeechRecognition || window.webkitSpeechRecognition)()
             : null;
+        this.recognitionFailed = false; // Flag si la reconnaissance échoue (ex: Android)
         if (this.recognition) this.setupRecognition();
         this.setupEventListeners();
 
@@ -373,8 +377,28 @@ class ALEXIA {
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
         this.recognition.lang = this.languageSelect?.value || this.currentLanguage;
+        this.recognition.maxAlternatives = 1;
+
+        this.recognition.onerror = (event) => {
+            console.warn('SpeechRecognition erreur:', event.error, event.message);
+            const noRestart = ['not-allowed', 'service-not-allowed', 'aborted', 'network'];
+            if (noRestart.includes(event.error)) {
+                this.recognitionFailed = true;
+                const msg = event.error === 'not-allowed'
+                    ? 'Microphone non autorisé. Vérifiez les permissions du navigateur.'
+                    : event.error === 'network'
+                    ? 'Connexion requise pour la transcription en direct.'
+                    : 'Transcription en direct indisponible. Utilisez "Transcrire l\'audio" après l\'enregistrement.';
+                if (this.transcriptionDisplay && this.isRecording) {
+                    this.transcriptionDisplay.innerHTML = `<em style="color:#c0392b;">${msg}</em>`;
+                }
+                return;
+            }
+            // no-speech, audio-capture, etc. : on laisse onend gérer le redémarrage
+        };
 
         this.recognition.onresult = (event) => {
+            this.recognitionFailed = false; // Au premier résultat, on considère que ça marche
             let finalTranscript = '';
             let interimTranscript = '';
 
@@ -403,9 +427,14 @@ class ALEXIA {
         };
 
         this.recognition.onend = () => {
-            if (this.isRecording && this.recognition) {
-                try { this.recognition.start(); } catch (e) { /* ignore */ }
-            }
+            if (!this.isRecording || !this.recognition || this.recognitionFailed) return;
+            // Sur mobile, délai avant redémarrage pour éviter artefacts audio
+            const delay = this.isMobile ? 300 : 100;
+            setTimeout(() => {
+                if (this.isRecording && this.recognition && !this.recognitionFailed) {
+                    try { this.recognition.start(); } catch (e) { /* ignore */ }
+                }
+            }, delay);
         };
     }
 
@@ -426,6 +455,7 @@ class ALEXIA {
             this.updateUIWithCurrentLanguage();
         });
 
+        if (this.transcribeAudioBtn) this.transcribeAudioBtn.addEventListener('click', () => this.transcribeRecordedAudio());
         this.downloadAudioBtn.addEventListener('click', () => this.downloadAudio());
         this.downloadReportBtn.addEventListener('click', () => this.downloadReport());
         if (this.downloadReportPdfBtn) this.downloadReportPdfBtn.addEventListener('click', () => this.downloadReportPdf());
@@ -503,6 +533,12 @@ class ALEXIA {
         return this.languageConfig[this.currentLanguage] || this.defaultLanguageConfig;
     }
 
+    getRecordingDuration() {
+        if (!this.startTime) return 0;
+        const endTime = this.recordingEndTime || Date.now();
+        return endTime - this.startTime;
+    }
+
     async startRecording() {
         try {
             if (!navigator.mediaDevices?.getUserMedia) {
@@ -558,13 +594,14 @@ class ALEXIA {
                 this.downloadAudioBtn.disabled = false;
                 this.downloadReportBtn.disabled = false;
                 if (this.downloadReportPdfBtn) this.downloadReportPdfBtn.disabled = false;
+                if (this.transcribeAudioBtn && this.audioChunks.length > 0) this.transcribeAudioBtn.disabled = false;
             };
 
             this.mediaRecorder.start(1000);
             if (this.recognition) {
                 this.recognition.start();
             } else if (this.transcriptionDisplay) {
-                this.transcriptionDisplay.innerHTML = '<em style="color:#666;font-size:0.95rem;">La transcription vocale n\'est pas disponible sur cet appareil (ex: iPhone). L\'audio est bien enregistré et peut être téléchargé.</em>';
+                this.transcriptionDisplay.innerHTML = '<em style="color:#666;font-size:0.95rem;">La transcription en direct n\'est pas disponible sur cet appareil. L\'audio est enregistré. Utilisez le bouton "Transcrire l\'audio" après l\'arrêt.</em>';
             }
             this.isRecording = true;
             this.startButton.textContent = 'Arrêter l\'enregistrement';
@@ -576,6 +613,7 @@ class ALEXIA {
             // Activation des boutons de téléchargement
             this.downloadAudioBtn.disabled = true;
             this.downloadReportBtn.disabled = true;
+            if (this.transcribeAudioBtn) this.transcribeAudioBtn.disabled = true;
 
             if (this.autoStopCheckbox.checked) {
                 setTimeout(() => {
@@ -626,6 +664,7 @@ class ALEXIA {
 
     stopRecording() {
         if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+            this.recordingEndTime = Date.now(); // Pour calcul WPM après transcription différée
             try {
                 this.mediaRecorder.requestData();
             } catch (e) { /* ignore si déjà en cours d'arrêt */ }
@@ -641,6 +680,7 @@ class ALEXIA {
             this.downloadAudioBtn.disabled = true;
             this.downloadReportBtn.disabled = true;
             if (this.downloadReportPdfBtn) this.downloadReportPdfBtn.disabled = true;
+            if (this.transcribeAudioBtn) this.transcribeAudioBtn.disabled = true;
         }
     }
 
@@ -669,7 +709,8 @@ class ALEXIA {
 
     analyzeSpeed(text) {
         const words = text.trim().split(/\s+/).length;
-        const totalTime = Date.now() - this.startTime;
+        const endTime = this.recordingEndTime || Date.now();
+        const totalTime = endTime - this.startTime;
         
         // Mettre à jour le temps de parole total en tenant compte des pauses
         if (this.lastSpeechTime && Date.now() - this.lastSpeechTime > this.pauseThreshold) {
@@ -800,7 +841,7 @@ class ALEXIA {
         const config = this.getLanguageConfig();
         const suggestions = [];
         const words = text.trim().split(/\s+/).length;
-        const totalTime = Date.now() - this.startTime;
+        const totalTime = this.getRecordingDuration();
         const speakingTime = totalTime - (this.pauseCount * this.pauseThreshold);
         const minutes = Math.max(speakingTime / 60000, 0.001);
         const wpm = Math.round(words / minutes);
@@ -948,6 +989,54 @@ class ALEXIA {
         if (avgWordsPerSentence > 20) score -= 1;
 
         return Math.max(0, Math.min(10, score));
+    }
+
+    async transcribeRecordedAudio() {
+        if (!this.audioChunks?.length) {
+            this.statusDisplay.textContent = 'Aucun enregistrement à transcrire.';
+            return;
+        }
+        const btn = this.transcribeAudioBtn;
+        const origText = btn?.textContent;
+        if (btn) { btn.disabled = true; btn.textContent = 'Transcription...'; }
+        this.transcriptionDisplay.innerHTML = '<em style="color:#666;">Transcription en cours...</em>';
+
+        try {
+            const type = this.recordedMimeType || 'audio/webm';
+            const blob = new Blob(this.audioChunks, { type });
+            const formData = new FormData();
+            formData.append('audio', blob, 'recording.webm');
+            formData.append('language', (this.languageSelect?.value || this.currentLanguage).split('-')[0]);
+
+            const apiBase = window.ALEXIA_API || window.location.origin;
+            const res = await fetch(`${apiBase}/api/transcribe`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('authToken') || '') },
+                body: formData
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Erreur de transcription');
+            }
+            if (data.text) {
+                this.accumulatedText = data.text.trim();
+                this.transcriptionDisplay.textContent = this.accumulatedText;
+                this.analyzeSpeed(this.accumulatedText);
+                this.analyzeEmotion(this.accumulatedText);
+                this.analyzeClarity(this.accumulatedText);
+                this.analyzeEngagement(this.accumulatedText);
+                this.generateSuggestions(this.accumulatedText);
+                this.statusDisplay.textContent = 'Transcription terminée.';
+            } else {
+                this.transcriptionDisplay.innerHTML = '<em style="color:#c0392b;">Aucun texte détecté dans l\'audio.</em>';
+            }
+        } catch (err) {
+            console.error('Erreur transcription:', err);
+            this.transcriptionDisplay.innerHTML = `<em style="color:#c0392b;">${err.message || 'Erreur de transcription. Vérifiez la connexion et réessayez.'}</em>`;
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = origText || 'Transcrire l\'audio'; }
+        }
     }
 
     async downloadAudio() {

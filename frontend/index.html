@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2C3E50">
+    <title data-translate="title">ALEXIA - Assistant Vocal Multilingue</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 data-translate="title">ALEXIA - Assistant Vocal Multilingue</h1>
+        
+        <!-- Barre supérieure : thème + langue -->
+        <div class="top-bar">
+            <div class="top-bar-buttons">
+                <button id="themeToggle" class="theme-toggle" title="Thème clair/sombre" aria-label="Changer le thème">🌙</button>
+                <button id="offlineModeBtn" class="theme-toggle offline-btn" title="Préparer pour le mode hors ligne" aria-label="Mode hors ligne"><span class="offline-btn-icon">📥</span><span class="offline-btn-text">Hors ligne</span></button>
+            </div>
+            <div class="language-ui-selector language-ui-selector-inline">
+            <label for="uiLanguageSelect">Interface Language / Langue de l'interface:</label>
+            <select id="uiLanguageSelect" class="select-style">
+                <option value="fr-FR">Français</option>
+                <option value="en-US">English</option>
+                <option value="fon-BJ">Fongbè</option>
+            </select>
+            </div>
+        </div>
+
+        <!-- Options de configuration -->
+        <div class="settings-container">
+            <div class="language-selector">
+                <label for="languageSelect" data-translate="speechLanguage">Langue de parole:</label>
+                <select id="languageSelect" class="select-style">
+                    <optgroup label="Langues Africaines">
+                        <option value="sw-KE">Swahili (Kenya)</option>
+                        <option value="sw-TZ">Swahili (Tanzanie)</option>
+                        <option value="am-ET">Amharique (Éthiopie)</option>
+                        <option value="zu-ZA">Zoulou (Afrique du Sud)</option>
+                        <option value="yo-NG">Yoruba (Nigeria)</option>
+                        <option value="ha-NG">Haoussa (Nigeria)</option>
+                        <option value="fon-BJ">Fon (Bénin)</option>
+                    </optgroup>
+                    <optgroup label="Langues Européennes">
+                        <option value="fr-FR" selected>Français (France)</option>
+                        <option value="fr-CA">Français (Canada)</option>
+                        <option value="en-US">Anglais (États-Unis)</option>
+                        <option value="en-GB">Anglais (Royaume-Uni)</option>
+                        <option value="de-DE">Allemand</option>
+                        <option value="es-ES">Espagnol</option>
+                        <option value="it-IT">Italien</option>
+                        <option value="pt-PT">Portugais</option>
+                    </optgroup>
+                    <optgroup label="Langues Asiatiques">
+                        <option value="zh-CN">Chinois (Mandarin)</option>
+                        <option value="ja-JP">Japonais</option>
+                        <option value="ko-KR">Coréen</option>
+                        <option value="hi-IN">Hindi</option>
+                        <option value="ar-SA">Arabe</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="autoStopCheckbox" checked>
+                <label for="autoStopCheckbox" data-translate="autoStop">Arrêt automatique à 2 minutes</label>
+            </div>
+        </div>
+
+        <!-- Informations sur la langue -->
+        <div class="language-info">
+            <p id="languageSupport" class="language-support-info" data-translate="languageSupport">Support de la langue: Vérifié</p>
+            <p id="dialectInfo" class="dialect-info" data-translate="dialectInfo">Dialecte: Standard</p>
+        </div>
+
+        <div class="recorder-container">
+            <button id="startButton" class="button" data-translate="startButton">Commencer l'enregistrement</button>
+            <div class="timer-row">
+                <div id="timer" class="timer">00:00</div>
+                <div id="timerRemaining" class="timer-remaining"></div>
+            </div>
+            <div class="progress-bar-container" style="display:none">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+            <div id="status" class="status"></div>
+        </div>
+
+        <div class="results-container">
+            <div class="result-box">
+                <h3 data-translate="speechRate" data-translate-category="metrics">Vitesse de parole</h3>
+                <p id="wpm"><span>--</span> <span data-translate="wordsPerMinute" data-translate-category="metrics">mots/minute</span></p>
+            </div>
+            <div class="result-box">
+                <h3 data-translate="emotion" data-translate-category="metrics">Émotion détectée</h3>
+                <p id="emotion">--</p>
+            </div>
+            <div class="result-box">
+                <h3 data-translate="clarity" data-translate-category="metrics">Clarté</h3>
+                <p id="clarity">--/10</p>
+            </div>
+            <div class="result-box">
+                <h3 data-translate="engagement" data-translate-category="metrics">Engagement</h3>
+                <p id="engagement">--/10</p>
+            </div>
+        </div>
+
+        <!-- Métriques avancées -->
+        <div class="advanced-metrics">
+            <div class="metric-box">
+                <h3 data-translate="voiceAnalysis">Analyse vocale</h3>
+                <p id="pauseCount"><span data-translate="pauses" data-translate-category="metrics">Pauses</span>: --</p>
+                <p id="hesitationCount"><span data-translate="hesitations" data-translate-category="metrics">Hésitations</span>: --</p>
+            </div>
+            <div class="metric-box">
+                <h3 data-translate="suggestions">Suggestions</h3>
+                <ul id="suggestions" class="suggestions-list">
+                    <li data-translate="defaultSuggestion">Les suggestions apparaîtront ici pendant votre discours</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="transcription" class="transcription"></div>
+
+        <!-- Zone de traduction -->
+        <div class="translation-container">
+            <div class="translation-controls">
+                <select id="translationTargetLanguage" class="language-select">
+                    <option value="fr-FR">Français</option>
+                    <option value="en-US">English</option>
+                    <option value="fon-BJ">Fongbè</option>
+                </select>
+                <button id="translateButton" class="button">Traduire</button>
+                <div class="auto-translate-option">
+                    <label>
+                        <input type="checkbox" id="autoTranslateCheckbox">
+                        Traduction automatique
+                    </label>
+                </div>
+            </div>
+            <div id="translationResult" class="translation-result">[Zone de traduction]</div>
+        </div>
+
+        <!-- Actions post-enregistrement -->
+        <div class="post-recording-actions">
+            <button id="downloadAudio" class="button secondary" disabled data-translate="downloadAudio">Télécharger l'audio</button>
+            <button id="downloadReport" class="button secondary" disabled data-translate="downloadReport">Télécharger le rapport (HTML)</button>
+            <button id="downloadReportPdf" class="button secondary" disabled data-translate="downloadReportPdf">Exporter en PDF</button>
+        </div>
+    </div>
+    <script src="translations.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 

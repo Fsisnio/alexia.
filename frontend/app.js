@@ -561,7 +561,11 @@ class ALEXIA {
             };
 
             this.mediaRecorder.start(1000);
-            if (this.recognition) this.recognition.start();
+            if (this.recognition) {
+                this.recognition.start();
+            } else if (this.transcriptionDisplay) {
+                this.transcriptionDisplay.innerHTML = '<em style="color:#666;font-size:0.95rem;">La transcription vocale n\'est pas disponible sur cet appareil (ex: iPhone). L\'audio est bien enregistré et peut être téléchargé.</em>';
+            }
             this.isRecording = true;
             this.startButton.textContent = 'Arrêter l\'enregistrement';
             this.startButton.classList.add('recording');

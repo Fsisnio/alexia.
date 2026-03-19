@@ -336,6 +336,19 @@ h1 {
     }
 }
 
+/* Bouton Transcrire (visible juste après la transcription, priorité mobile) */
+.transcribe-action-inline {
+    margin-top: 1rem;
+}
+.transcribe-action-inline .button {
+    width: 100%;
+}
+@media (min-width: 769px) {
+    .transcribe-action-inline .button {
+        width: auto;
+    }
+}
+
 /* Actions post-enregistrement */
 .post-recording-actions {
     display: flex;

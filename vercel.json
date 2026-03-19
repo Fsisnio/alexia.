@@ -1,4 +1,3 @@
 {
-  "public": "frontend",
-  "buildCommand": "npm install"
+  "buildCommand": "npm install && cp -r frontend public"
 }

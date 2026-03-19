@@ -31,4 +31,5 @@ users.json
 
 # Build output
 dist/
-build/ 
+build/
+public/ 

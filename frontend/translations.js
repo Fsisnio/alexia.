@@ -143,6 +143,177 @@ const translations = {
             translation: 'Translation',
             reportTitle: 'Voice Analysis Report'
         }
+    },
+    'wo-SN': {
+        ui: {
+            title: 'ALEXIA — Taxawu laaj ci làkk',
+            speechLanguage: 'Làkk bu wax:',
+            autoStop: 'Tax boppam ci 2 simili',
+            languageSupport: 'Jëkk-jëkk ci làkk',
+            dialectInfo: 'Fataat: Wolof',
+            startButton: 'Tàmbali waxtaan',
+            stopButton: 'Tax waxtaan bi',
+            transcribeAudio: 'Bindi wax ji API',
+            transcribeAudioMobile: '📝 Bindi wax',
+            transcribingAudio: 'Dina bind…',
+            downloadAudio: 'Yeb wax bi',
+            downloadReport: 'Yeb rapport (HTML)',
+            downloadReportPdf: 'Yeb ci PDF',
+            settings: 'Tànneef yi',
+            practice: 'Jàngoro yi',
+            stats: 'Lim yi',
+            translateButton: 'Soppi làkk',
+            autoTranslate: 'Soppi làkk boppam',
+            translationPlaceholder: '[Bër soppi làkk]',
+            voiceAnalysis: 'Topp ci wax',
+            suggestions: 'Taan',
+            defaultSuggestion: 'Taan yi di fees ci ndax wax ji…',
+            transcription: 'Bind'
+        },
+        metrics: {
+            speechRate: 'Yoon ci wax',
+            emotion: 'Xalaat bu am',
+            clarity: 'Leeral',
+            engagement: 'Jàppante',
+            wordsPerMinute: 'Ci waxtu bu njëkk',
+            tone: 'Ton',
+            pauses: 'Tax yi',
+            hesitations: 'Doute yi',
+            vitesse: 'Yoon',
+            clarte: 'Leeral'
+        },
+        feedback: {
+            tooFast: 'Loolu waxul yomb; yàggal tuuti.',
+            tooSlow: 'Mën nga yëkkati yoon bi tuuti.',
+            goodPace: 'Yoon bi baax na.',
+            useMorePauses: 'Yokk tax yu am soloŋ.',
+            reducePauses: 'Yëkkati tax yi su fekkee moom.',
+            goodStructure: 'Wax ji baax na ci ton.'
+        },
+        report: {
+            date: 'Bés',
+            duration: 'Guddi',
+            sourceLanguage: 'Làkk wu jëkk',
+            metrics: 'Lim yi',
+            transcription: 'Bind',
+            originalText: 'Mbind mi jëkk',
+            translation: 'Soppi làkk',
+            reportTitle: 'Rapport ci wax ji'
+        }
+    },
+    'ee-GH': {
+        ui: {
+            title: 'ALEXIA — Gbeɖiɖi dzi nu gble la',
+            speechLanguage: 'Gbe:',
+            autoStop: 'Tu la ɖe eɖokui le simeli 2 me',
+            languageSupport: 'Gbe ƒe kpekpeɖeŋu',
+            dialectInfo: 'Gbeƒã: Éwé (Ghana)',
+            startButton: 'Dze gbleɖiɖi gome',
+            stopButton: 'Tu gbleɖiɖi me',
+            transcribeAudio: 'Ŋlɔ gbleɖiɖi la dzi API dzi',
+            transcribeAudioMobile: '📝 Ŋlɔ gbleɖiɖi la',
+            transcribingAudio: 'Wɔm ŋlɔm…',
+            downloadAudio: 'Lɔ̃ gbleɖiɖi la',
+            downloadReport: 'Lɔ̃ nyatakaka (HTML)',
+            downloadReportPdf: 'Ðo to PDF',
+            settings: 'Ðoɖowo',
+            practice: 'Ðoɖoɖowo',
+            stats: 'Nɔnɔmetowo',
+            translateButton: 'Tɔ gbe',
+            autoTranslate: 'Tɔ gbe la ɖe eɖokui',
+            translationPlaceholder: '[Nu tɔ gbe la]',
+            voiceAnalysis: 'Ɣloyiɖiɖi gbleɖiɖi',
+            suggestions: 'Nuɖiɖi',
+            defaultSuggestion: 'Nuɖiɖiwo aɖe li afi le gbleɖiɖi me…',
+            transcription: 'Ŋlɔnuto'
+        },
+        metrics: {
+            speechRate: 'Gbleɖiɖi ƒe didi',
+            emotion: 'Dzidzɔ si le',
+            clarity: 'Nuɖiɖi',
+            engagement: 'Kpekpeɖeŋu',
+            wordsPerMinute: 'ŋkɔwo/gaɖi',
+            tone: 'Gbleɖiɖi ƒe didi',
+            pauses: 'Ðoɖowo',
+            hesitations: 'Vɔvɔ̃wo',
+            vitesse: 'Dididɔwɔwɔ',
+            clarte: 'Nuɖiɖi'
+        },
+        feedback: {
+            tooFast: 'Trɔ asi le gbleɖiɖi me vevie.',
+            tooSlow: 'Ðo didi aɖe nu.',
+            goodPace: 'Didi la nyuie.',
+            useMorePauses: 'Li ðoɖowo aɖe si nyo.',
+            reducePauses: 'Ðo ðoɖowo aɖe nu.',
+            goodStructure: 'Nu gble la de blibo.'
+        },
+        report: {
+            date: 'Ŋkeke',
+            duration: 'Gaɖi',
+            sourceLanguage: 'Gbe si tso',
+            metrics: 'Nɔnɔmetowo',
+            transcription: 'Ŋlɔnuto',
+            originalText: 'Ŋlɔnuto si tso',
+            translation: 'Gbe si wɔ tɔ',
+            reportTitle: 'Nyatakaka gbleɖiɖi ƒe'
+        }
+    },
+    'tw-GH': {
+        ui: {
+            title: 'ALEXIA — Kasakasa adanseɛ dubɔfo',
+            speechLanguage: 'Kasa a wɔde:',
+            autoStop: 'Gyae ankasa bere simma 2 mu',
+            languageSupport: 'Kasa no ho banbɔ',
+            dialectInfo: 'Kasa: Twi (Ghana)',
+            startButton: 'Hyɛ ato a sen',
+            stopButton: 'Gyae sen no',
+            transcribeAudio: 'Kyɛwerɛ nea wɔka no (API)',
+            transcribeAudioMobile: '📝 Kyɛwerɛ',
+            transcribingAudio: 'Ɛreyɛ kyɛwerɛ…',
+            downloadAudio: 'Download nea wɔte no',
+            downloadReport: 'Download adanseɛ (HTML)',
+            downloadReportPdf: 'Export ma PDF',
+            translateButton: 'Kyɛ kasa',
+            autoTranslate: 'Kyɛ kasa ankasa',
+            translationPlaceholder: '[Bea a wɔbɛkyɛ kasa]',
+            settings: 'Nhyehyɛe',
+            practice: 'Adwumaden',
+            stats: 'Nkanee',
+            voiceAnalysis: 'Kasa adwene',
+            suggestions: 'Adwene',
+            defaultSuggestion: 'Adwene no bɛba ha bere a wore kasa…',
+            transcription: 'Kyɛwerɛ'
+        },
+        metrics: {
+            speechRate: 'Kasa bere',
+            emotion: 'Ahometew',
+            clarity: 'Kasa a ɛda adi mu',
+            engagement: 'Ahɔhare',
+            wordsPerMinute: 'nsɛm/nna',
+            tone: 'Kasa bere',
+            pauses: 'Home',
+            hesitations: 'Ahintasintasibo',
+            vitesse: 'Bere',
+            clarte: 'Kasa a ɛda adi mu'
+        },
+        feedback: {
+            tooFast: 'Bɔ mmɔden ka brɛoo.',
+            tooSlow: 'Bɛtumi de bere no kakra.',
+            goodPace: 'Bere no yɛ.',
+            useMorePauses: 'Fa home bi ka ho hia.',
+            reducePauses: 'Bɔ mmɔden sɛnea wobɛte home no ase.',
+            goodStructure: 'Wo kasa no asi yiye.'
+        },
+        report: {
+            date: 'Da',
+            duration: 'Bere',
+            sourceLanguage: 'Kasa a ɛfirii',
+            metrics: 'Nkanee',
+            transcription: 'Kyɛwerɛ',
+            originalText: 'Nea wɔkyerɛw no',
+            translation: 'Kasa a wɔakyɛ no',
+            reportTitle: 'Kasa adanseɛ krataa'
+        }
     }
 };
 
@@ -199,7 +370,9 @@ class TranslationManager {
             'fr-FR': 'Français',
             'en-US': 'English',
             'fon-BJ': 'Fongbè',
-            // Ajouter d'autres langues ici
+            'wo-SN': 'Wolof',
+            'ee-GH': 'Éwé (Ghana)',
+            'tw-GH': 'Twi (Ghana)'
         };
         return languageNames[langCode] || langCode;
     }

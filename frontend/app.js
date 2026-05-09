@@ -119,7 +119,10 @@ class ALEXIA {
             { code: 'ko-KR', name: 'Coréen' },
             { code: 'zh-CN', name: 'Chinois (Mandarin)' },
             { code: 'ar-SA', name: 'Arabe' },
-            { code: 'hi-IN', name: 'Hindi' }
+            { code: 'hi-IN', name: 'Hindi' },
+            { code: 'wo-SN', name: 'Wolof (Sénégal)' },
+            { code: 'ee-GH', name: 'Éwé (Ghana)' },
+            { code: 'tw-GH', name: 'Twi (Ghana)' }
         ];
 
         // Liste complète des langues disponibles pour la traduction
@@ -131,14 +134,15 @@ class ALEXIA {
             { code: 'sw', name: 'Swahili', priority: true },
             { code: 'zu', name: 'Zoulou', priority: true },
             { code: 'bm', name: 'Bambara', priority: true },
-            { code: 'ee', name: 'Éwé', priority: true },
+            { code: 'ee', name: 'Éwé (Ghana)', priority: true },
             { code: 'rw', name: 'Kinyarwanda', priority: true },
             { code: 'ln', name: 'Lingala', priority: true },
             { code: 'lg', name: 'Luganda', priority: true },
             { code: 'ti', name: 'Tigrigna', priority: true },
             { code: 'om', name: 'Oromo', priority: true },
             { code: 'rn', name: 'Kirundi', priority: true },
-            { code: 'ak', name: 'Akan (Twi)', priority: true },
+            { code: 'ak', name: 'Akan', priority: true },
+            { code: 'tw', name: 'Twi (Ghana)', priority: true },
             { code: 'ber', name: 'Tamazight', priority: true },
             { code: 'af', name: 'Afrikaans' },
             { code: 'sq', name: 'Albanais' },
@@ -544,6 +548,15 @@ class ALEXIA {
                 break;
             case 'ha':
                 dialectInfo = 'Dialecte: Haoussa standard';
+                break;
+            case 'wo':
+                dialectInfo = 'Dialecte: Wolof (Sénégal)';
+                break;
+            case 'ee':
+                dialectInfo = 'Dialecte: Éwé (Ghana)';
+                break;
+            case 'tw':
+                dialectInfo = 'Dialecte: Twi (Ghana)';
                 break;
             default:
                 dialectInfo = `Dialecte: ${this.currentLanguage}`;
@@ -1486,6 +1499,8 @@ class ALEXIA {
             'sw-TZ': 'Kiswahili (Tanzania)',
             'am-ET': 'አማርኛ',
             'wo-SN': 'Wolof',
+            'ee-GH': 'Éwé (Ghana)',
+            'tw-GH': 'Twi (Ghana)',
             'yo-NG': 'Yorùbá',
             'ha-NG': 'Hausa',
             'zu-ZA': 'isiZulu',
@@ -1497,7 +1512,14 @@ class ALEXIA {
             'hi-IN': 'हिन्दी',
             'ar-SA': 'العربية',
             'fa-IR': 'فارسی',
-            'tr-TR': 'Türkçe'
+            'tr-TR': 'Türkçe',
+
+            // Codes ISO (cible traduction)
+            'wo': 'Wolof',
+            'ee': 'Éwé (Ghana)',
+            'tw': 'Twi (Ghana)',
+            'ak': 'Akan',
+            'fon': 'Fongbé'
         };
         return languageNames[langCode] || langCode;
     }

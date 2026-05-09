@@ -142,8 +142,9 @@ app.get('*', (req, res) => {
 });
 
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`Serveur backend sur http://localhost:${PORT}`);
+  const host = '0.0.0.0';
+  app.listen(PORT, host, () => {
+    console.log(`Serveur backend sur http://${host}:${PORT}`);
     console.log(`Serving frontend from: ${frontendPath}`);
   });
 }

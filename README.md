@@ -68,6 +68,14 @@ A multilingual speech analysis application with field interview capabilities, re
    netlify deploy
    ```
 
+### Render
+
+1. Créez un **Web Service** (pas un « Static Site ») pointant sur ce dépôt.
+2. **Root directory** : la racine du dépôt (là où se trouvent `package.json` et `index.js`).
+3. **Build** : `npm install` — **Start** : `npm start` (lance `node index.js`, sert le dossier `frontend/` et les routes `/api/*`).
+4. Variables d’environnement utiles : `OPENAI_API_KEY`, `JWT_SECRET`, éventuellement `FRONTEND_URL` pour CORS.
+5. Si la page affiche seulement « Not Found » en texte brut, le service Render n’est en général **pas** cette app Node (mauvais service, mauvaise branche, ou URL du type `alexis-…` au lieu du bon sous-domaine). Vérifiez les logs du déploiement et l’URL exacte du service.
+
 ### Manual Deployment
 
 1. Build the application:

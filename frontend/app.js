@@ -49,6 +49,9 @@ class ALEXIA {
                 pauses: 'Pauses',
                 hesitations: 'Hésitations',
                 downloadAudio: 'Télécharger l\'audio',
+                transcribeAudio: 'Transcrire l\'audio',
+                transcribeAudioMobile: '📝 Transcription',
+                transcribingAudio: 'Transcription…',
                 downloadReport: 'Télécharger le rapport',
                 selectLanguage: 'Sélectionner une langue...',
                 selectTargetLanguage: 'Sélectionner une langue cible...',
@@ -79,6 +82,9 @@ class ALEXIA {
                 pauses: 'Pauses',
                 hesitations: 'Hesitations',
                 downloadAudio: 'Download Audio',
+                transcribeAudio: 'Transcribe audio',
+                transcribeAudioMobile: '📝 Transcription',
+                transcribingAudio: 'Transcribing…',
                 downloadReport: 'Download Report',
                 selectLanguage: 'Select a language...',
                 selectTargetLanguage: 'Select target language...',
@@ -252,6 +258,7 @@ class ALEXIA {
         this.languageSelect = document.getElementById('languageSelect');
         this.autoStopCheckbox = document.getElementById('autoStopCheckbox');
         this.transcribeAudioBtn = document.getElementById('transcribeAudio');
+        this.transcribeAudioMobileBtn = document.getElementById('transcribeAudioMobile');
         this.downloadAudioBtn = document.getElementById('downloadAudio');
         this.downloadReportBtn = document.getElementById('downloadReport');
         this.downloadReportPdfBtn = document.getElementById('downloadReportPdf');
@@ -263,6 +270,9 @@ class ALEXIA {
 
         // Détection mobile pour adaptations (Web Speech API limité sur mobile)
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // iPadOS / Chrome-Firefox sur iPhone signalent parfois "Macintosh" + touch ; CriOS = Chrome iOS (moteur WebKit)
+        this.isIOSBrowser = /iPhone|iPad|iPod|CriOS|FxiOS|EdgiOS/i.test(navigator.userAgent)
+            || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         this.recognition = (window.SpeechRecognition || window.webkitSpeechRecognition)
             ? new (window.SpeechRecognition || window.webkitSpeechRecognition)()
             : null;
@@ -354,17 +364,28 @@ class ALEXIA {
     }
 
     getSupportedMimeType() {
-        const types = [
+        // Safari / WebKit iOS enregistrent en MP4/AAC ; WebM est souvent absent ou peu fiable
+        const typesIosFirst = [
+            'audio/mp4;codecs=mp4a.40.2',
+            'audio/mp4',
             'audio/webm;codecs=opus',
             'audio/webm',
+            'audio/ogg;codecs=opus',
+            'audio/ogg'
+        ];
+        const typesDefault = [
+            'audio/webm;codecs=opus',
+            'audio/webm',
+            'audio/mp4;codecs=mp4a.40.2',
             'audio/mp4',
             'audio/ogg;codecs=opus',
             'audio/ogg'
         ];
+        const types = this.isIOSBrowser ? typesIosFirst : typesDefault;
         if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported) {
             for (const type of types) {
                 if (MediaRecorder.isTypeSupported(type)) {
-                    const ext = type.includes('mp4') ? 'm4a' : 'webm';
+                    const ext = type.includes('mp4') ? 'm4a' : (type.includes('ogg') ? 'ogg' : 'webm');
                     return { mimeType: type, ext };
                 }
             }
@@ -455,7 +476,9 @@ class ALEXIA {
             this.updateUIWithCurrentLanguage();
         });
 
-        if (this.transcribeAudioBtn) this.transcribeAudioBtn.addEventListener('click', () => this.transcribeRecordedAudio());
+        const runTranscribe = () => this.transcribeRecordedAudio();
+        if (this.transcribeAudioBtn) this.transcribeAudioBtn.addEventListener('click', runTranscribe);
+        if (this.transcribeAudioMobileBtn) this.transcribeAudioMobileBtn.addEventListener('click', runTranscribe);
         this.downloadAudioBtn.addEventListener('click', () => this.downloadAudio());
         this.downloadReportBtn.addEventListener('click', () => this.downloadReport());
         if (this.downloadReportPdfBtn) this.downloadReportPdfBtn.addEventListener('click', () => this.downloadReportPdf());
@@ -594,10 +617,19 @@ class ALEXIA {
                 this.downloadAudioBtn.disabled = false;
                 this.downloadReportBtn.disabled = false;
                 if (this.downloadReportPdfBtn) this.downloadReportPdfBtn.disabled = false;
-                if (this.transcribeAudioBtn && this.audioChunks.length > 0) this.transcribeAudioBtn.disabled = false;
+                const totalBytes = this.audioChunks.reduce((n, c) => n + (c.size || 0), 0);
+                this.setTranscribeButtonsDisabled(totalBytes === 0);
+                if (totalBytes === 0) {
+                    this.statusDisplay.textContent = 'Aucune donnée audio capturée. Réessayez un enregistrement un peu plus long ou vérifiez le micro.';
+                }
             };
 
-            this.mediaRecorder.start(1000);
+            // Sans timeslice, WebKit iOS livre en général tout l’audio à l’arrêt (chunks fiables pour Whisper)
+            if (this.isIOSBrowser) {
+                this.mediaRecorder.start();
+            } else {
+                this.mediaRecorder.start(1000);
+            }
             if (this.recognition) {
                 this.recognition.start();
             } else if (this.transcriptionDisplay) {
@@ -613,7 +645,7 @@ class ALEXIA {
             // Activation des boutons de téléchargement
             this.downloadAudioBtn.disabled = true;
             this.downloadReportBtn.disabled = true;
-            if (this.transcribeAudioBtn) this.transcribeAudioBtn.disabled = true;
+            this.setTranscribeButtonsDisabled(true);
 
             if (this.autoStopCheckbox.checked) {
                 setTimeout(() => {
@@ -680,7 +712,7 @@ class ALEXIA {
             this.downloadAudioBtn.disabled = true;
             this.downloadReportBtn.disabled = true;
             if (this.downloadReportPdfBtn) this.downloadReportPdfBtn.disabled = true;
-            if (this.transcribeAudioBtn) this.transcribeAudioBtn.disabled = true;
+            this.setTranscribeButtonsDisabled(true);
         }
     }
 
@@ -991,21 +1023,52 @@ class ALEXIA {
         return Math.max(0, Math.min(10, score));
     }
 
+    setTranscribeButtonsDisabled(disabled) {
+        [this.transcribeAudioBtn, this.transcribeAudioMobileBtn].forEach((b) => {
+            if (!b || b.dataset.transcribeBusy === '1') return;
+            b.disabled = disabled;
+        });
+    }
+
+    setTranscribeBusy(active, loadingLabel) {
+        [this.transcribeAudioBtn, this.transcribeAudioMobileBtn].forEach((b) => {
+            if (!b) return;
+            if (active) {
+                b.dataset.transcribeBusy = '1';
+                b.disabled = true;
+                b.textContent = loadingLabel;
+            } else {
+                delete b.dataset.transcribeBusy;
+            }
+        });
+    }
+
+    applyTranscribeLabelsFromUiTranslations() {
+        const t = this.uiTranslations[this.currentLanguage] || this.uiTranslations['en-US'];
+        if (this.transcribeAudioBtn && this.transcribeAudioBtn.dataset.transcribeBusy !== '1' && t.transcribeAudio) {
+            this.transcribeAudioBtn.textContent = t.transcribeAudio;
+        }
+        if (this.transcribeAudioMobileBtn && this.transcribeAudioMobileBtn.dataset.transcribeBusy !== '1' && t.transcribeAudioMobile) {
+            this.transcribeAudioMobileBtn.textContent = t.transcribeAudioMobile;
+        }
+    }
+
     async transcribeRecordedAudio() {
         if (!this.audioChunks?.length) {
             this.statusDisplay.textContent = 'Aucun enregistrement à transcrire.';
             return;
         }
-        const btn = this.transcribeAudioBtn;
-        const origText = btn?.textContent;
-        if (btn) { btn.disabled = true; btn.textContent = 'Transcription...'; }
+        const t = this.uiTranslations[this.currentLanguage] || this.uiTranslations['en-US'];
+        const loadingLabel = t.transcribingAudio || 'Transcription…';
+        this.setTranscribeBusy(true, loadingLabel);
         this.transcriptionDisplay.innerHTML = '<em style="color:#666;">Transcription en cours...</em>';
 
         try {
             const type = this.recordedMimeType || 'audio/webm';
             const blob = new Blob(this.audioChunks, { type });
+            const ext = this.recordedFileExt || 'webm';
             const formData = new FormData();
-            formData.append('audio', blob, 'recording.webm');
+            formData.append('audio', blob, `recording.${ext}`);
             formData.append('language', (this.languageSelect?.value || this.currentLanguage).split('-')[0]);
 
             const apiBase = window.ALEXIA_API || window.location.origin;
@@ -1035,7 +1098,10 @@ class ALEXIA {
             console.error('Erreur transcription:', err);
             this.transcriptionDisplay.innerHTML = `<em style="color:#c0392b;">${err.message || 'Erreur de transcription. Vérifiez la connexion et réessayez.'}</em>`;
         } finally {
-            if (btn) { btn.disabled = false; btn.textContent = origText || 'Transcrire l\'audio'; }
+            this.setTranscribeBusy(false);
+            this.applyTranscribeLabelsFromUiTranslations();
+            const totalBytes = this.audioChunks.reduce((n, c) => n + (c.size || 0), 0);
+            this.setTranscribeButtonsDisabled(totalBytes === 0);
         }
     }
 
@@ -1729,6 +1795,7 @@ class ALEXIA {
         if (this.isFieldInterview) {
             this.updateFieldModeUI();
         }
+        this.applyTranscribeLabelsFromUiTranslations();
     }
 
     updateFieldModeUI() {

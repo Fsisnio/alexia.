@@ -104,7 +104,18 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     const OpenAI = require('openai').default;
     const openai = new OpenAI({ apiKey });
     const lang = (req.body.language || 'fr').substring(0, 2);
-    const tmpPath = path.join(require('os').tmpdir(), `alexia-${Date.now()}.webm`);
+    const origName = req.file.originalname || '';
+    let tmpExt = path.extname(origName).toLowerCase();
+    if (!tmpExt || tmpExt === '.') {
+      const mt = (req.file.mimetype || '').toLowerCase();
+      if (mt.includes('mp4') || mt.includes('m4a') || mt.includes('aac')) tmpExt = '.m4a';
+      else if (mt.includes('webm')) tmpExt = '.webm';
+      else if (mt.includes('ogg')) tmpExt = '.ogg';
+      else if (mt.includes('wav')) tmpExt = '.wav';
+      else if (mt.includes('mpeg') || mt.includes('mp3')) tmpExt = '.mp3';
+      else tmpExt = '.webm';
+    }
+    const tmpPath = path.join(require('os').tmpdir(), `alexia-${Date.now()}${tmpExt}`);
     fs.writeFileSync(tmpPath, req.file.buffer);
     try {
       const transcription = await openai.audio.transcriptions.create({

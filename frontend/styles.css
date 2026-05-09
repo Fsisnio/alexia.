@@ -349,6 +349,27 @@ h1 {
     }
 }
 
+/* Bouton transcription dédié mobile (sous le statut, zone pouce) */
+.transcribe-mobile-bar {
+    display: none;
+    margin-top: 1rem;
+}
+.transcribe-mobile-btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.2);
+}
+@media (max-width: 768px) {
+    .transcribe-mobile-bar {
+        display: block;
+    }
+    .transcribe-action-inline {
+        display: none;
+    }
+}
+
 /* Actions post-enregistrement */
 .post-recording-actions {
     display: flex;
